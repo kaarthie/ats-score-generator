@@ -13,19 +13,36 @@ def calculateScore(resume):
 
     contactScore = 0
     resumeObjectiveScore = 0
-    workExperienceScore = {}
+    workExperienceScore = 0
     educationScore = 0
     projectScore = 0
     skillsScore = 0
 
-    # Initial Reviews
+    # Default Reviews
 
-    contactReview = "You have provided all the necessary contact information in your resume, ensuring easy accessibility for potential employers. Well done on ensuring thorough communication channels!"
-    resumeObjectiveReview = "The resume objective you've included succinctly outlines your career goals, providing recruiters with a clear understanding of your aspirations. It's a nice touch to personalize your application."
-    workExperienceReview = "Great! You have provided the necessary details about your work experience. This section is thorough, offering insight into your professional journey. Nicely presented with relevant details that showcase your expertise and accomplishments."
-    educationReview = "Your educational background is neatly displayed, adding depth to your qualifications. It's good to see your academics highlighted effectively. It is always good to add recent two educational qualifications"
-    projectReview = "You have included sufficient details about your projects in your resume. This section is informative, shedding light on your practical skills and accomplishments. Well-described projects offer a clear picture of your capabilities and contributions."
-    skillsReview = "You have included a good variety of skills in your resume. Your skills section is impressive with a wide range of competencies crucial for the role. It's evident that you possess a versatile skill set that aligns well with the job requirements, making you a strong candidate for consideration."
+    contactReview = """You have provided all the necessary contact information in your resume, 
+                    ensuring easy accessibility for potential employers. Well done on ensuring 
+                    thorough communication channels!"""
+    
+    resumeObjectiveReview = """The resume objective you've included succinctly outlines your career goals, 
+                            providing recruiters with a clear understanding of your aspirations. It's a nice 
+                            touch to personalize your application."""
+    
+    workExperienceReview = """Great! You have provided the necessary details about your work experience. 
+                            This section is thorough, offering insight into your professional journey. 
+                            Nicely presented with relevant details that showcase your expertise and accomplishments."""
+    
+    educationReview = """Your educational background is neatly displayed, adding depth to your qualifications. 
+                        It's good to see your academics highlighted effectively. It is always good to add 
+                        recent two educational qualifications"""
+    
+    projectReview = """You have included sufficient details about your projects in your resume. This section is informative, 
+                      shedding light on your practical skills and accomplishments. Well-described projects offer a clear 
+                      picture of your capabilities and contributions."""
+    
+    skillsReview = """You have included a good variety of skills in your resume. Your skills section is impressive with a 
+                    wide range of competencies crucial for the role. It's evident that you possess a versatile skill set 
+                    that aligns well with the job requirements, making you a strong candidate for consideration."""
 
     
     # Contact Section
@@ -36,19 +53,26 @@ def calculateScore(resume):
             contactScore += 10 / 3
         else : 
             missedFields.add(key + " in Contact section")
-            contactReview = "Make Sure You Provide Name, email and mailID in your contact section. Including comprehensive contact information ensures seamless communication between you and potential employers, facilitating swift follow-ups and interview scheduling, ultimately expediting the hiring process and enhancing your chances of securing opportunities."
+            contactReview = """Make Sure You Provide Name, email and mailID in your contact section. Including comprehensive 
+                            contact information ensures seamless communication between you and potential employers, 
+                            facilitating swift follow-ups and interview scheduling, ultimately expediting the hiring process 
+                            and enhancing your chances of securing opportunities."""
+            
     total["contactScore"] = contactScore
     total["contactReview"] = contactReview
     ats_score += contactScore
 
-    # Resume Objective
+    # Resume Objective Section
             
     resumeObjective = resume.get("Resume_objective")
     if resumeObjective is not None and value != "":
         resumeObjectiveScore += 10
     else:
         missedFields.add("Resume Objective")
-        resumeObjectiveReview = "Make sure you include the resume objective/summary in your resume. Enhance your resume objective by aligning it with the specific job role and company culture, showcasing your enthusiasm and commitment towards contributing to the organization's success."
+        resumeObjectiveReview = """Make sure you include the resume objective/summary in your resume. Enhance your resume 
+                                objective by aligning it with the specific job role and company culture, showcasing your enthusiasm 
+                                and commitment towards contributing to the organization's success."""
+        
     total["resumeObjectiveScore"] = resumeObjectiveScore
     total["resumeObjectiveReview"] = resumeObjectiveReview
     ats_score += resumeObjectiveScore
@@ -65,8 +89,11 @@ def calculateScore(resume):
                 job_score += score_per_job / 3
             else :
                 missedFields.add(key + " in Work Experience section")
-                workExperienceReview = "Make sure you update the Organization name, role and years of experience/date of all the organisations you have worked in. Include quantifiable achievements and results to substantiate your impact in previous roles, offering tangible evidence of your capabilities and demonstrating your potential value to prospective employers."
-        workExperienceScore[job["Organization_name"]] = job_score
+                workExperienceReview = """Make sure you update the Organization name, role and years of experience/date of all 
+                                        the organisations you have worked in. Include quantifiable achievements and results to 
+                                        substantiate your impact in previous roles, offering tangible evidence of your capabilities 
+                                        and demonstrating your potential value to prospective employers."""
+        workExperienceScore  += job_score
         ats_score += job_score
     total["workExperienceScore"] = workExperienceScore
     total["workExperienceReview"] = workExperienceReview
@@ -102,7 +129,10 @@ def calculateScore(resume):
                 projectScore += score_per_project / 3
             else :
                 missedFields.add(key + " of project in Project section")
-                projectReview = "Make Sure you provide your project name, short description, and tech stacks used in it. Provide context around project challenges, methodologies employed, and outcomes achieved, showcasing your problem-solving skills, creativity, and ability to drive successful project outcomes."
+                projectReview = """Make Sure you provide your project name, short description, and tech stacks used in it. 
+                                Provide context around project challenges, methodologies employed, and outcomes achieved, 
+                                showcasing your problem-solving skills, creativity, and ability to drive successful project outcomes."""
+    
     total["projectScore"] = projectScore
     total["projectReview"] = projectReview
     ats_score += projectScore
@@ -114,7 +144,10 @@ def calculateScore(resume):
     elif (len(skills) > 3) : skillsScore = 15
     elif (len(skills) > 1) : skillsScore = 10
     elif (len(skills) == 1) : skillsScore = 5
-    else : skillsReview = "The provided skills are very less in number try to add more skills. Prioritize skills that are directly relevant to the job description and industry trends, emphasizing proficiency levels and any specialized expertise or certifications you possess to distinguish yourself as a top candidate."
+    else : skillsReview = """The provided skills are very less in number try to add more skills. Prioritize skills that are directly 
+                            relevant to the job description and industry trends, emphasizing proficiency levels and any specialized 
+                            expertise or certifications you possess to distinguish yourself as a top candidate."""
+    
     total["skillsScore"] = skillsScore
     total["skillsReview"] = skillsReview
     ats_score += skillsScore
@@ -124,10 +157,12 @@ def calculateScore(resume):
     # Image or PDF
     isImage = resume.get("is_image")
     if isImage == True:
-        total["formatReview"] = "You have uploaded an image resume which would fail in many ATS recruitment process. Please have a resume in PDF format"
+        total["formatReview"] = """You have uploaded an image resume which would fail in 
+                                many ATS recruitment process. Please have a resume in PDF format"""
     else : 
         total["formatScore"] = 5
-        total["formatReview"] = "Great that you have uploaded a PDF format of your resume, which can qualify in most of the ATS recruitment processes"
+        total["formatReview"] = """Great that you have uploaded a PDF format of your resume, 
+                                which can qualify in most of the ATS recruitment processes"""
         ats_score += 5
    
     # Certifications
@@ -137,7 +172,9 @@ def calculateScore(resume):
         ats_score += 2.5
     else :
         total["certificateScore"] = 0.0
-        total["certificateReview"] = "Adding a section dedicated to certificates showcases the specific knowledge and skills you've acquired during your certification. This enables recruiters to assess your proficiency in areas directly related to the position you're applying for."
+        total["certificateReview"] = """Adding a section dedicated to certificates showcases the specific knowledge and skills you've 
+                                        acquired during your certification. This enables recruiters to assess your proficiency in areas 
+                                        directly related to the position you're applying for."""
         missedFields.add("Certifications")
 
     # Achievements
@@ -158,7 +195,10 @@ def calculateScore(resume):
         total["softSkillsReview"] = "Please Include two to five soft skills"
     else :
         total["softSkillsScore"] = 0
-        total["softSkillsReview"] = "Please Include any soft skills in the resume"
+        total["softSkillsReview"] = """Soft skills are personal attributes and interpersonal abilities that complement 
+                                    your technical skills and are often essential for success in the workplace. 
+                                    By highlighting your soft skills, you can demonstrate your ability to work 
+                                    effectively in a team, communicate clearly, solve problems, and adapt to changing situations."""
         missedFields.add("Softs kills")
     
     return total
@@ -172,11 +212,16 @@ def getReport(resume):
     for i in missedFields:
         missedFields_str += " '"+ i + "',"
     if len(missedFields):
-        fieldsToAdd = gemini_response('You are a resume optimization chatbot. The user will give some important fields that are missing in the resume. Your response should include only these sections and how it would improve the resume. The output should be in json as I am sending this api response text as a json response to the front end.It should not contain any special characters,underscore or numbers.Use camel case for fieldnames in json. Just include headings as field. The output should be in this format : {"fieldName" : "Importance of this field and recommend to add this section in one paragraph (four lines)"} ',missedFields_str)
+        fieldsToAdd = gemini_response('''You are a resume optimization chatbot. The user will give some important fields that are missing in the resume. 
+                                      Your response should include only these sections and how it would improve the resume. 
+                                      The output should be in json as I am sending this api response text as a json response to the front end.
+                                      It should not contain any special characters,underscore or numbers.Use camel case for fieldnames in json.
+                                      Just include headings as field. he output should be in this format : 
+                                      {"fieldName" : "Importance of this field and recommend to add this section in one paragraph (four lines)"} ''',missedFields_str)
         fieldsToAdd = json.loads(fieldsToAdd)
-        fieldsToAdd = json.dumps(fieldsToAdd, indent=4)
+        fieldsToAdd = json.dumps(fieldsToAdd)
         # print(fieldsToAdd)
     return {"ats_score" : str(round(ats_score, 1)) + "%", "resumeReport" : resumeReport, "fieldsToAdd" : fieldsToAdd}
 
-totalReport = getReport(resume1) 
+totalReport = getReport(resume3) 
 print(json.dumps(totalReport, indent = 4))
