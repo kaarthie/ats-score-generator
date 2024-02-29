@@ -1,5 +1,5 @@
 import os
-from sampleResumes import resume1, resume2, resume3
+from sampleResumes import resume1, resume2, resume3, resume4
 from geminiResponse import gemini_response
 import json
 missedFields = set()
@@ -12,7 +12,7 @@ def calculateScore(resume):
     # Initial Scores
 
     contactScore = 0
-    resumeObjectiveScore = 0
+    resumeSummaryScore = 0
     workExperienceScore = 0
     educationScore = 0
     projectScore = 0
@@ -24,7 +24,7 @@ def calculateScore(resume):
                     ensuring easy accessibility for potential employers. Well done on ensuring 
                     thorough communication channels!"""
     
-    resumeObjectiveReview = """The resume objective you've included succinctly outlines your career goals, 
+    resumeSummaryReview = """The resume objective you've included succinctly outlines your career goals, 
                             providing recruiters with a clear understanding of your aspirations. It's a nice 
                             touch to personalize your application."""
     
@@ -64,18 +64,18 @@ def calculateScore(resume):
 
     # Resume Objective Section
             
-    resumeObjective = resume.get("Resume_objective")
-    if resumeObjective is not None and value != "":
-        resumeObjectiveScore += 10
+    resumeSummary = resume.get("Resume_summary")
+    if resumeSummary is not None and value != "":
+        resumeSummaryScore += 10
     else:
         missedFields.add("Resume Objective")
-        resumeObjectiveReview = """Make sure you include the resume objective/summary in your resume. Enhance your resume 
+        resumeSummaryReview = """Make sure you include the resume objective/summary in your resume. Enhance your resume 
                                 objective by aligning it with the specific job role and company culture, showcasing your enthusiasm 
                                 and commitment towards contributing to the organization's success."""
         
-    total["resumeObjectiveScore"] = resumeObjectiveScore
-    total["resumeObjectiveReview"] = resumeObjectiveReview
-    ats_score += resumeObjectiveScore
+    total["resumeSummaryScore"] = resumeSummaryScore
+    total["resumeSummaryReview"] = resumeSummaryReview
+    ats_score += resumeSummaryScore
 
     # Work Experience/Internships
     
@@ -223,5 +223,5 @@ def getReport(resume):
         # print(fieldsToAdd)
     return {"ats_score" : str(round(ats_score, 1)) + "%", "resumeReport" : resumeReport, "fieldsToAdd" : fieldsToAdd}
 
-totalReport = getReport(resume3) 
+totalReport = getReport(resume4) 
 print(json.dumps(totalReport, indent = 4))
