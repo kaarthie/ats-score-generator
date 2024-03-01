@@ -96,27 +96,11 @@ def extract_text(path):
 
     return {"text":result,"is_image":is_image}
 
-text = extract_text('./resumes/sahil.pdf')["text"]
+text = extract_text('./resumes/sudh.pdf')["text"]
 text = text.replace('\xa0', '')
-print(text)
-
-def extract_years_from_experience(text):
-    start_index = text.find("Experience")
-    end_index = text.find("Education")
-    experience_text = text[start_index:end_index]
-
-    # Define a regular expression pattern to match years
-    pattern = r'(\d+)\s+years?'
-
-    # Find all matches of the pattern in the experience text
-    matches = re.findall(pattern, experience_text)
-
-    # Convert the matched years to integers and sum them up
-    total_years = sum(int(year) for year in matches)
-
-    return total_years
 
 
+# Compare skills in description and user profile
 def skill_compare(skills1, skills2):
     matching_skills = []
     not_match_skills = []
@@ -130,36 +114,38 @@ def skill_compare(skills1, skills2):
         else:
             not_match_skills.append(skill)
     return {"matchingSkills": matching_skills, "notMatchSkills": not_match_skills}
-# 
+
+# Headline
 def headline_match(headline, jobPosition):
     jobPosition_formatted = jobPosition.replace(" ", "").replace("-", "").replace(".", "").lower()
     headline_formatted = headline.replace(" ", "").replace("-", "").replace(".", "").lower()
-    lengthOfHeadline = len(headline);
-# 
+    lengthOfHeadline = len(headline)
+
     # Length checking
     if len(headline.split(" ")) < 6:
         lengthSuggestion = 'Good LinkedIn headlines are 6-12 words and take advantage of the 120 character limit.'
     else :
         lengthSuggestion = 'Length of headline is good.'
-# 
+
     # Special characters checking
     special_characters_count = sum(1 for char in headline if not char.isalnum())
     if special_characters_count > 2:
         specialCharactersSuggestion = "Your headline contains more than 2 special characters. Consider simplifying it for better readability."
     else:
         specialCharactersSuggestion = "Number of special characters in headline is acceptable."
-# 
+
     # Headline Match Checking
     if headline_formatted in jobPosition_formatted or jobPosition_formatted in headline_formatted:
         objective = f"Fantastic job including '{jobPosition}' in your headline! This simple step can greatly improve your visibility to recruiters, making it easier for them to find you. Keep up the excellent work!"
     else:
         objective = f"We recommend including the exact title '{jobPosition}' in your headline. Recruiters frequently search by job titles and exact phrasing ranks higher in search results."                                                                                  
-#    
+    
     return {"length" : lengthSuggestion ,
             "headlineMatch": objective,
             "specialCharacters" : specialCharactersSuggestion,
             "sampleHeadline" : jobPosition}
-# 
+
+# Education
 def education_match(resumeDegree, descriptionDegree):
     matching_degrees = []
     description_degree_formatted = descriptionDegree.replace(" ", "").replace("-", "").replace(".", "").lower()
@@ -168,30 +154,69 @@ def education_match(resumeDegree, descriptionDegree):
         if description_degree_formatted in resume_degree_formatted or resume_degree_formatted in description_degree_formatted:
             matching_degrees.append(descriptionDegree)
     return matching_degrees
-# 
+
+# Find Profile Experience
+def extract_years_from_experience(text):
+    start_index = text.find("Experience")
+    end_index = text.find("Education")
+    experience_text = text[start_index:end_index]
+
+    # RE to find years
+    pattern1 = r'(\d+)\s+years?'
+    pattern2 = r'(\d+)\s+months?'
+
+    # Find all matches of the pattern in the experience text
+    matches1 = re.findall(pattern1, experience_text)
+    matches2 = re.findall(pattern2, experience_text)
+    print(matches1)
+    print(matches2)
+    # Convert the matched years to integers and sum them up
+    total_years = sum(int(year) for year in matches1)
+    total_months = sum(int(month) for month in matches2)
+    return round(float(total_years) + float(total_months/12), 1)
+
+# Combined function
 def complete_analysis(text, jd1):
+
     # Get resume and Job description information
     resumeInfo = get_resume_information(text)
     descriptionInfo = get_description_information(jd1)
-# 
+
     # Perform skill comparison
     skill_comparison = {
         "mustHave": skill_compare(resumeInfo["topSkills"], descriptionInfo["mustHaveSkills"]),
         "niceToHave": skill_compare(resumeInfo["topSkills"], descriptionInfo["niceToHaveSkills"])
     }
-    # 
+    # Experience matching
+    required_experience = descriptionInfo["streamOfEducation"]
+    profile_experience = extract_years_from_experience(text)
+
     # Perform headline matching
     headline_matching = headline_match(resumeInfo["resumeHeadline"], descriptionInfo["jobPosition"])
-    # 
+
     # Perform education matching
     education_matching = education_match(resumeInfo["education"], descriptionInfo["streamOfEducation"])
     print(resumeInfo["totalYearsOfExperience"])
     print(descriptionInfo["YearsOfExperienceRequired"])
+
+    name = resumeInfo["basicInfo"]["name"]
+    location = resumeInfo["basicInfo"]["location"]
+    if name :
+        nameReview = "Full name provided"
+    else :
+        nameReview = "Please provide you name in the profile"
+    if name :
+        locationReview = "You have included your location. It helps recruiters find you - more than 30% of recruiters will search by location."
+    else :
+        locationReview = "Please update your Location in the profile. Adding a specific location and country helps recruiters find you - more than 30% of recruiters will search by location."
+    
     return {
-        "Contact": resumeInfo["basicInfo"],
-        "Skills": skill_comparison,
+        "basicInfo": {"name" : nameReview , "location" : locationReview},
         "Headline": headline_matching,
-        "Education Matching": education_matching
+        "Skills": skill_comparison,
+        "Education Matching": education_matching,
+        "tipsAndTricks" : {}
     }
 # 
-print(json.dumps(complete_analysis(text, jd1), indent=4))
+# print(json.dumps(complete_analysis(text, jd1), indent=4))
+print("this is 30%")
