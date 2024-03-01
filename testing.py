@@ -1,7 +1,7 @@
 import time
 from dotenv import dotenv_values
-
 config = dotenv_values(".env")
+import re
 import pdf2image
 import json
 import pytesseract
@@ -36,7 +36,7 @@ def gemini_json_response(count,prompt,text):
         # print(obj)
     except Exception as e:
         print(e)
-        if count<5:
+        if count < 5:
             return gemini_json_response(count+1,prompt,text)
         else:
             return None
@@ -47,14 +47,14 @@ def get_resume_information(resumeDetails):
     prompt='''Your task is to parse the resume details and give a json format which can be readily 
             converted into dict using json.loads in python and if there is no relevent information 
             found then use a empty string(""),. The output must be in the below format 
-            {{"contactInformation":{{"Name":"", "email":"", "phone":"", "Linkedin":""}},
+            "basicInfo": {{"name" : "", location : "", "email" : "", "gitHub" : ""}},
             "resumeHeadline":"mandatory field",
             "summary" : "", 
             "workingExperience" :[{{"Organization_name":"","role":"", "years_of_experience":"date or number"}}] (if available),
             "topSkills":[""](tools, frameworks, libraries, programming languages only),
             "education" : [{{"Institution_name":"","Degree":"", "Marks":"" ,"Completion_year":""}}],"Achievements":[""](if avaliable),
-            "c
-            ertifications":[""] (if available)
+            "certifications":[""] (if available),
+            "totalYearsOfExperience" : "" (in number)
             }}. And don\'t use backticks or other special symbols in the output.'''
     text=f"The resume detail is :{resumeDetails}"
     return gemini_json_response(0,prompt,text)
@@ -66,7 +66,7 @@ def get_description_information(jobDescription):
             {{"jobPosition":"mandatory field",
             "mustHaveSkills":[""](tools, frameworks, libraries only),
             "Summary" : "", 
-            "YearsOfExperienceRequired" : "",
+            "YearsOfExperienceRequired" : "" (number only),
             "niceToHaveSkills":[""] (tools, frameworks, libraries only),
             "jobLocation"
             "streamOfEducation" : "" (if available),
@@ -96,48 +96,102 @@ def extract_text(path):
 
     return {"text":result,"is_image":is_image}
 
-
-text = extract_text('./resumes/sudh.pdf')["text"]
+text = extract_text('./resumes/sahil.pdf')["text"]
 text = text.replace('\xa0', '')
+print(text)
+
+def extract_years_from_experience(text):
+    start_index = text.find("Experience")
+    end_index = text.find("Education")
+    experience_text = text[start_index:end_index]
+
+    # Define a regular expression pattern to match years
+    pattern = r'(\d+)\s+years?'
+
+    # Find all matches of the pattern in the experience text
+    matches = re.findall(pattern, experience_text)
+
+    # Convert the matched years to integers and sum them up
+    total_years = sum(int(year) for year in matches)
+
+    return total_years
 
 
-resumeInfo = get_resume_information(text)
-descriptionInfo = get_description_information(jd1)
-
-
-def skill_compare(skills1,skills2):
-    matching_skills=[]
-    not_match_skills=[]
-    for index,skill in enumerate(skills1):
-        skills1[index]=skill.replace(" ","").replace("-","").replace(".","").lower()
-    skills2=list(map(str.lower,skills2))
+def skill_compare(skills1, skills2):
+    matching_skills = []
+    not_match_skills = []
+    for index, skill in enumerate(skills1):
+        skills1[index] = skill.replace(" ", "").replace("-", "").replace(".", "").lower()
+    skills2 = list(map(str.lower, skills2))
     for skill in skills2:
-        skill_formated=skill.replace(" ","").replace("-","").replace(".","").lower()
+        skill_formated = skill.replace(" ", "").replace("-", "").replace(".", "").lower()
         if skill_formated in skills1:
             matching_skills.append(skill)
         else:
             not_match_skills.append(skill)
-    return {"match":matching_skills,"not_match":not_match_skills}
-
-# Headline x Job Position Matching and Recommendation of adding/removing headline
-
-def headline_match(headLine, jobPosition):
-    jobPosition_formatted = jobPosition.replace(" ","").replace("-","").replace(".","").lower()
-    headLine_formatted = headLine.replace(" ","").replace("-","").replace(".","").lower()
-
-    if headLine_formatted in jobPosition_formatted:
-        print("Objective Matching --> ", headLine)
-
-# Must have skills Matching
-
-print(skill_compare(resumeInfo["topSkills"], descriptionInfo["mustHaveSkills"]))
-
-# Nice to have skills Matching
-
-print(skill_compare(resumeInfo["topSkills"], descriptionInfo["niceToHaveSkills"]))
-
-# Education Matching with streams mentioned JD (if applicable)
-
-# Matching Certifications related to the skills in JD
-
-# Suggestions of missed skills in the user Linked in profile
+    return {"matchingSkills": matching_skills, "notMatchSkills": not_match_skills}
+# 
+def headline_match(headline, jobPosition):
+    jobPosition_formatted = jobPosition.replace(" ", "").replace("-", "").replace(".", "").lower()
+    headline_formatted = headline.replace(" ", "").replace("-", "").replace(".", "").lower()
+    lengthOfHeadline = len(headline);
+# 
+    # Length checking
+    if len(headline.split(" ")) < 6:
+        lengthSuggestion = 'Good LinkedIn headlines are 6-12 words and take advantage of the 120 character limit.'
+    else :
+        lengthSuggestion = 'Length of headline is good.'
+# 
+    # Special characters checking
+    special_characters_count = sum(1 for char in headline if not char.isalnum())
+    if special_characters_count > 2:
+        specialCharactersSuggestion = "Your headline contains more than 2 special characters. Consider simplifying it for better readability."
+    else:
+        specialCharactersSuggestion = "Number of special characters in headline is acceptable."
+# 
+    # Headline Match Checking
+    if headline_formatted in jobPosition_formatted or jobPosition_formatted in headline_formatted:
+        objective = f"Fantastic job including '{jobPosition}' in your headline! This simple step can greatly improve your visibility to recruiters, making it easier for them to find you. Keep up the excellent work!"
+    else:
+        objective = f"We recommend including the exact title '{jobPosition}' in your headline. Recruiters frequently search by job titles and exact phrasing ranks higher in search results."                                                                                  
+#    
+    return {"length" : lengthSuggestion ,
+            "headlineMatch": objective,
+            "specialCharacters" : specialCharactersSuggestion,
+            "sampleHeadline" : jobPosition}
+# 
+def education_match(resumeDegree, descriptionDegree):
+    matching_degrees = []
+    description_degree_formatted = descriptionDegree.replace(" ", "").replace("-", "").replace(".", "").lower()
+    for degree_info in resumeDegree:
+        resume_degree_formatted = degree_info['Degree'].replace(" ", "").replace("-", "").replace(".", "").replace(",", "").lower()
+        if description_degree_formatted in resume_degree_formatted or resume_degree_formatted in description_degree_formatted:
+            matching_degrees.append(descriptionDegree)
+    return matching_degrees
+# 
+def complete_analysis(text, jd1):
+    # Get resume and Job description information
+    resumeInfo = get_resume_information(text)
+    descriptionInfo = get_description_information(jd1)
+# 
+    # Perform skill comparison
+    skill_comparison = {
+        "mustHave": skill_compare(resumeInfo["topSkills"], descriptionInfo["mustHaveSkills"]),
+        "niceToHave": skill_compare(resumeInfo["topSkills"], descriptionInfo["niceToHaveSkills"])
+    }
+    # 
+    # Perform headline matching
+    headline_matching = headline_match(resumeInfo["resumeHeadline"], descriptionInfo["jobPosition"])
+    # 
+    # Perform education matching
+    education_matching = education_match(resumeInfo["education"], descriptionInfo["streamOfEducation"])
+    print(resumeInfo["totalYearsOfExperience"])
+    print(descriptionInfo["YearsOfExperienceRequired"])
+    return {
+        "Contact": resumeInfo["basicInfo"],
+        "Skills": skill_comparison,
+        "Headline": headline_matching,
+        "Education Matching": education_matching
+    }
+# 
+print(json.dumps(complete_analysis(text, jd1), indent=4))
